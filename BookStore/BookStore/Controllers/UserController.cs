@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace BookStore.Controllers
@@ -15,7 +16,7 @@ namespace BookStore.Controllers
     public class UserController : ControllerBase
     {
         IUserBl userBL;
-        public UserController(IUserBl userBL )
+        public UserController(IUserBl userBL)
         {
             this.userBL = userBL;
         }
@@ -56,55 +57,55 @@ namespace BookStore.Controllers
         [HttpPost("ForgotPassword")]
         public IActionResult ForgotPassword(string EmailId)
         {
-            if (string.IsNullOrEmpty(EmailId))
-            {
-                return BadRequest("Email should not be null or empty");
-            }
             try
             {
                 var result = this.userBL.ForgetPassword(EmailId);
-                if (result != null)
+                if (result == false)
                 {
-                    return this.Ok(new { Success = true, message = "Token generated.Please check your email", token = result });
+                    return this.BadRequest(new { success = false, message = "Email is invalid" });
                 }
                 else
                 {
-                    return this.Ok(new { Success = false, message = "Invalid User Please enter valid email and password." });
+
+                    return this.Ok(new { success = true, message = "Token sent succesfully to email for password reset" });
                 }
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return this.BadRequest(new { success = false, message = ex.Message });
-
+                throw e;
             }
         }
-        [Authorize]
+    
+        [AllowAnonymous]
         [HttpPut("ResetPassword")]
 
         public ActionResult ResetPassword(string Password)
         {
             try
             {
-                var userEmail = User.FindFirst("EmailId").Value.ToString();
-                if (userEmail != null)
+                var identity = User.Identity as ClaimsIdentity;
+                if (identity != null)
                 {
-                    this.userBL.ResetPassword(userEmail, Password);
-
-                    return Ok(new { Success = true, message = "Password reset successfully" });
+                    IEnumerable<Claim> claims = identity.Claims;
+                    var UserEmailObject = claims.FirstOrDefault()?.Value;
+                    if (UserEmailObject != null)
+                    {
+                        this.userBL.ResetPassword(UserEmailObject, Password);
+                        return Ok(new { success = true, message = "Password Changed Sucessfully" });
+                    }
+                    else
+                    {
+                        return this.BadRequest(new { success = false, message = $"Email is not Authorized" });
+                    }
                 }
-                else
-                {
-                    return BadRequest(new { Success = false, message = "Password reset Unsuccesfully" });
-                }
+                return this.BadRequest(new { success = false, message = $"Password not changed Successfully" });
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return this.BadRequest(new { success = false, message = ex.Message });
-
+                throw e;
             }
         }
 
-
-
     }
 }
+

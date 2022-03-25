@@ -17,22 +17,22 @@ namespace RepositoryLayer.Services
 {
     public class UserRL : IUserRL
     {
-        private readonly IConfiguration _config;
-        public string ConnectionStringName { get; set; } = "BookStore";
-        public UserRL(IConfiguration config)
+       
+        private SqlConnection sqlConnection;
+
+        public UserRL(IConfiguration configuration)
         {
-            _config = config;
+            this.Configuration = configuration;
         }
 
+        public IConfiguration Configuration { get; }
         public void UserRegistration(UserPostModel user)
         {
+            sqlConnection = new SqlConnection(this.Configuration.GetConnectionString("BookStore"));
 
-
-            string connectionString = _config.GetConnectionString(ConnectionStringName);
-
-            using (SqlConnection con = new SqlConnection(connectionString))
+            using (sqlConnection)
             {
-                SqlCommand cmd = new SqlCommand("sp_UserRegister", con);
+                SqlCommand cmd = new SqlCommand("sp_UserRegister", sqlConnection);
                 cmd.CommandType = CommandType.StoredProcedure;
 
                 cmd.Parameters.AddWithValue("@FullName", user.FullName);
@@ -41,26 +41,26 @@ namespace RepositoryLayer.Services
                 cmd.Parameters.AddWithValue("@Password", user.Password);
 
 
-                con.Open();
+                sqlConnection.Open();
                 cmd.ExecuteNonQuery();
-                con.Close();
+                sqlConnection.Close();
             }
         }
 
         public string Login(string EmailId, string Password)
         {
-            string connectionString = _config.GetConnectionString(ConnectionStringName);
+            sqlConnection = new SqlConnection(this.Configuration.GetConnectionString("BookStore"));
 
             try
             {
-                using (SqlConnection con = new SqlConnection(connectionString))
+                using (sqlConnection)
                 {
                     UserLogin userLogin = new UserLogin();
-                    SqlCommand cmd = new SqlCommand("sp_UserLogin", con);
+                    SqlCommand cmd = new SqlCommand("sp_UserLogin", sqlConnection);
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@EmailId", EmailId);
                     cmd.Parameters.AddWithValue("@Password", Password);
-                    con.Open();
+                    sqlConnection.Open();
                     SqlDataReader reader = cmd.ExecuteReader();
 
 
@@ -79,13 +79,17 @@ namespace RepositoryLayer.Services
                         return null;
                     }
 
-                    con.Close();
+                    
                 }
             }
 
             catch (Exception e)
             {
                 throw e;
+            }
+            finally
+            {
+                sqlConnection.Close();
             }
         }
         private static string GenerateToken(string EmailId)
@@ -136,18 +140,18 @@ namespace RepositoryLayer.Services
 
         public bool ForgetPassword(string EmailId)
         {
-            string connectionString = _config.GetConnectionString(ConnectionStringName);
+            sqlConnection = new SqlConnection(this.Configuration.GetConnectionString("BookStore"));
 
             try
             {
-                using (SqlConnection con = new SqlConnection(connectionString))
+                using (sqlConnection)
                 {
                     UserPostModel model = new UserPostModel();
-                    SqlCommand command = new SqlCommand("sp_ForgetPassword", con);
+                    SqlCommand command = new SqlCommand("sp_ForgetPassword", sqlConnection);
 
                     command.CommandType = CommandType.StoredProcedure;
                     command.Parameters.AddWithValue("@EmailId", EmailId);
-                    con.Open();
+                    sqlConnection.Open();
                     var result = command.ExecuteNonQuery();
 
 
@@ -174,17 +178,30 @@ namespace RepositoryLayer.Services
 
                     queue.BeginReceive();
                     queue.Close();
-                    return true;
+                    if (result != 0)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+
+
                 }
+
+
             }
+
             catch (Exception e)
             {
                 throw e;
             }
-            //finally
-            //{
-            //    sqlConnection.Close();
-            //}
+            finally
+            {
+                sqlConnection.Close();
+            }
+
 
         }
         private void msmqQueue_ReceiveCompleted(object sender, ReceiveCompletedEventArgs e)
@@ -211,20 +228,20 @@ namespace RepositoryLayer.Services
 
         public bool ResetPassword(string EmailId, string Password)
         {
-            string connectionString = _config.GetConnectionString(ConnectionStringName);
+            sqlConnection = new SqlConnection(this.Configuration.GetConnectionString("BookStore"));
             try
             {
 
-                using (SqlConnection con = new SqlConnection(connectionString))
+                using (sqlConnection)
                 {
                     UserPostModel model = new UserPostModel();
-                    SqlCommand command = new SqlCommand("sp_ResetPassword", con);
+                    SqlCommand command = new SqlCommand("sp_ResetPassword", sqlConnection);
 
                     command.CommandType = CommandType.StoredProcedure;
 
                     command.Parameters.AddWithValue("@EmailId", EmailId);
                     command.Parameters.AddWithValue("@Password", Password);
-                    con.Open();
+                    sqlConnection.Open();
                     SqlDataReader dr = command.ExecuteReader();
                     if (dr.HasRows)
                     {
@@ -241,7 +258,7 @@ namespace RepositoryLayer.Services
                         return false;
 
                     }
-                    con.Close();
+                    
 
                 }
 
@@ -249,6 +266,10 @@ namespace RepositoryLayer.Services
             catch (Exception e)
             {
                 throw e;
+            }
+            finally
+            {
+                sqlConnection.Close();
             }
          
 

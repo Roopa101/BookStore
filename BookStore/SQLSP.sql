@@ -26,6 +26,31 @@ Begin
 select EmailId from UserRegister where EmailId=@EmailId 
 End
 
+
+alter procedure sp_ForgetPassword
+
+(
+@EmailId varchar(50)
+)
+
+as
+begin try
+     update UserRegister set Password=null where EmailId=@EmailId
+end try
+begin catch
+  select
+    ERROR_NUMBER() as ErrorNumber,
+    ERROR_STATE() as ErrorState,
+    ERROR_PROCEDURE() as ErrorProcedure,
+    ERROR_LINE() as ErrorLine,
+    ERROR_MESSAGE() as ErrorMessage;
+end catch
+
+
+
+
+
+
 create procedure sp_ResetPassword
 
 @EmailId varchar(25),
