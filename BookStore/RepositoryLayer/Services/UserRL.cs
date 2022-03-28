@@ -25,6 +25,7 @@ namespace RepositoryLayer.Services
             this.Configuration = configuration;
         }
 
+
         public IConfiguration Configuration { get; }
         public void UserRegistration(UserPostModel user)
         {
@@ -230,6 +231,7 @@ namespace RepositoryLayer.Services
         {
             sqlConnection = new SqlConnection(this.Configuration.GetConnectionString("BookStore"));
             try
+            
             {
 
                 using (sqlConnection)
