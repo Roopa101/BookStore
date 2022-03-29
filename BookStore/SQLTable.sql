@@ -80,3 +80,55 @@ create table Address
 
 select * from Address
 select * from AddressType
+
+----order---
+
+create table Orders
+(
+         OrdersId int not null identity (1,1) primary key,
+		 UserId INT NOT NULL,
+		 FOREIGN KEY (UserId) REFERENCES UserRegister(UserId),
+		 AddressId int
+		 FOREIGN KEY (AddressId) REFERENCES Address(AddressId),
+	     BookId INT NOT NULL
+		 FOREIGN KEY (BookId) REFERENCES Book(BookId),
+		 TotalPrice int,
+		 BookQuantity int,
+		 OrderDate Date
+);
+
+create table BooksOrder(
+OrderId int primary key identity(1,1),
+TotalPrice Money,
+BookQuantity int,
+OrderDate Date,
+userId int Foreign Key References UserRegister(userId),
+BookId int Foreign Key References Book(BookId),
+AddressId int Foreign Key References Address(AddressId)
+)
+select * from BooksOrder
+
+----feedback---
+
+create table Feedback
+(
+         FeedbackId int not null identity (1,1) primary key,
+		 UserId INT NOT NULL
+		 FOREIGN KEY (UserId) REFERENCES UserRegister(UserId),
+	     BookId INT NULL
+		 FOREIGN KEY (BookId) REFERENCES Book(BookId),
+		 Comments Varchar(max),
+		 Ratings int		 
+);
+
+create Table FeedBackBook(
+FeedbackId int not null identity (1,1) primary key,
+FeedBackFromUserName varchar(15),
+Comments varchar(50),
+Ratings int,
+UserId int Foreign Key References UserRegister(UserId),
+BookId int Foreign Key References Book(BookId))
+
+drop table FeedBackBook
+
+select * from FeedBackBook
