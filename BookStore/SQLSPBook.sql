@@ -244,41 +244,7 @@ Insert into BooksOrder (TotalPrice,BookQuantity,OrderDate,UserId,BookId,AddressI
 values (@TotalPrice,@BookQuantity,@OrderDate,@userId,@BookId,@AddressId)
 End
 
-create PROC sp_AddingOrders
-	@UserId INT,
-	@AddressId int,
-	@BookId INT ,
-	@BookQuantity int
-AS
-	Declare @TotPrice int
-BEGIN
-	Select @TotPrice=DiscountPrice from Book where BookId = @BookId;
-	IF (EXISTS(SELECT * FROM Book WHERE BookId = @BookId))
-	begin
-		IF (EXISTS(SELECT * FROM UserRegister WHERE UserId = @UserId))
-		Begin
-		Begin try
-			Begin transaction			
-				INSERT INTO Orders(UserId,AddressId,BookId,TotalPrice,BookQuantity,OrderDate)
-				VALUES ( @UserId,@AddressId,@BookId,@BookQuantity*@TotPrice,@BookQuantity,GETDATE())
-				Update Book set BookCount=BookCount-@BookQuantity
-				Delete from BookCart where BookId = @BookId and UserId = @UserId
-			commit Transaction
-		End try
-		Begin catch
-			Rollback transaction
-		End catch
-		end
-		Else
-		begin
-			Select 1
-		end
-	end 
-	Else
-	begin
-			Select 2
-	end	
-END
+
 
 create procedure sp_GetAllOrder
 @userId int
@@ -291,56 +257,12 @@ where BooksOrder.userId=@userId
 End
 
 
-
-
-
-
-alter procedure DeleteOrder
-(
-	@OrderId int
-)
-as
-Declare @Book int,@BookId int
-begin try
-	if(Exists(select * from BooksOrder where OrderId=@OrderId))
-	Begin
-		Begin try
-			Begin transaction
-				select @Book=BookQuantity,@BookId=BookId from BooksOrder where  OrderId = @OrderId
-				Update Book set Quantity=Quantity+@Book where BookId=@BookId		
-				Delete from BooksOrder where OrderId = @OrderId
-			commit Transaction
-		End try
-		Begin catch
-			Rollback transaction
-		End catch
-		end
-		Else
-		begin
-			Select 1
-		end
-end try
-begin catch
-select
-    ERROR_NUMBER() as ErrorNumber,
-    ERROR_STATE() as ErrorState,
-    ERROR_PROCEDURE() as ErrorProcedure,
-    ERROR_LINE() as ErrorLine,
-    ERROR_MESSAGE() as ErrorMessage;
-End catch
-
-
-create PROC sp_GetAllOrders
-	@UserId INT
-AS
-BEGIN
-	select 
-		Book.BookId,Book.BookName,Book.AuthorName,Book.DiscountPrice,Book.OriginalPrice,Book.BookDescription,Book.Image,Orders.OrdersId,Orders.OrderDate
-		FROM Book
-		inner join Orders
-		on Orders.BookId=Book.BookId where Orders.UserId=@UserId
-END
-
+create procedure sp_DeleteOrder
+@OrderId int
+As
+Begin 
+Delete BooksOrder where OrderId=@OrderId
+End
 
 ---feedback--
 
@@ -356,51 +278,8 @@ Insert into FeedBackBook(FeedBackFromUserName,Comments,Ratings,userId,BookId) va
  (@FeedBackFromUserName,@Comments,@Ratings,@userId,@BookId)
  End
 
-create procedure Sp_AddFeedback(
-	@UserId INT,
-	@BookId INT,
-	@Comments Varchar(max),
-	@Ratings int)		
-As 
-Declare @Rating int;
-Begin
-	IF (EXISTS(SELECT * FROM Feedback WHERE BookId = @BookId and UserId=@UserId))
-		select 1;
-	Else
-	Begin
-		IF (EXISTS(SELECT * FROM Book WHERE BookId = @BookId))
-		Begin
-			Begin try
-				Begin transaction
-					Insert into Feedback (UserId,BookId,Comments,Ratings )
-						values (@UserId,@BookId,@Comments,@Ratings);		
-					select @Rating=AVG(Ratings) from Feedback where BookId = @BookId;
-					Update Book set Rating=@Rating, Reviewer=Reviewer+1 where BookId = @BookId;
-				Commit Transaction
-			End Try
-			Begin catch
-				Rollback transaction
-			End catch
-		End
-		Else
-		Begin
-			Select 2; 
-		End
-	End
-End
 
 
-create PROC sp_GetFeedbacks
-	@BookId INT
-AS
-BEGIN
-	select 
-		Feedback.UserId,Feedback.Comments,Feedback.Ratings,UserRegister.FullName
-		FROM UserRegister
-		inner join Feedback
-		on Feedback.UserId=UserRegister.UserId
-		where BookId=@BookId
-END
 
  create procedure sp_GetAllFeedBack
  @BookId int

@@ -83,19 +83,6 @@ select * from AddressType
 
 ----order---
 
-create table Orders
-(
-         OrdersId int not null identity (1,1) primary key,
-		 UserId INT NOT NULL,
-		 FOREIGN KEY (UserId) REFERENCES UserRegister(UserId),
-		 AddressId int
-		 FOREIGN KEY (AddressId) REFERENCES Address(AddressId),
-	     BookId INT NOT NULL
-		 FOREIGN KEY (BookId) REFERENCES Book(BookId),
-		 TotalPrice int,
-		 BookQuantity int,
-		 OrderDate Date
-);
 
 create table BooksOrder(
 OrderId int primary key identity(1,1),
@@ -110,16 +97,6 @@ select * from BooksOrder
 
 ----feedback---
 
-create table Feedback
-(
-         FeedbackId int not null identity (1,1) primary key,
-		 UserId INT NOT NULL
-		 FOREIGN KEY (UserId) REFERENCES UserRegister(UserId),
-	     BookId INT NULL
-		 FOREIGN KEY (BookId) REFERENCES Book(BookId),
-		 Comments Varchar(max),
-		 Ratings int		 
-);
 
 create Table FeedBackBook(
 FeedbackId int not null identity (1,1) primary key,
