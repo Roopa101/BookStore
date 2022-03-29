@@ -51,3 +51,32 @@ create table WishList
 select * from WishList
 
 
+---Address----
+create table AddressType
+(
+	TypeId int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	Type varchar(20)
+);
+INSERT INTO AddressType (Type) VALUES ('Home')
+INSERT INTO AddressType (Type) VALUES ('Work')
+INSERT INTO AddressType (Type) VALUES ('Other')
+
+
+select * from AddressType
+
+drop table Address
+
+create table Address
+(
+    AddressId int NOT NULL IDENTITY(1,1) PRIMARY KEY,
+	UserId INT NOT NULL
+	FOREIGN KEY (UserId) REFERENCES UserRegister(UserId),
+	Address varchar(max) not null,
+	City varchar(100),
+	State varchar(100),
+	TypeId int
+	FOREIGN KEY (TypeId) REFERENCES AddressType(TypeId)
+);
+
+select * from Address
+select * from AddressType

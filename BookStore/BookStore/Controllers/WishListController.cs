@@ -78,22 +78,17 @@ namespace BookStore.Controllers
     public IActionResult GetAllBooksinWishList(int userId)
     {
               
-               var result = this.wishListBL.GetAllBooksinWishList(userId);
-               if (result != null)
-                        {
-                            return this.Ok(new { success = true, message = $"All Books Displayed in the WishList Successfully ", response = result });
+         var result = this.wishListBL.GetAllBooksinWishList(userId);
+         if (result != null)
+         {
+            return this.Ok(new { success = true, message = $"All Books Displayed in the WishList Successfully ", response = result });
                         }
                         else
                         {
                             return this.BadRequest(new { Status = false, Message = $"Books are not there in WishList " });
                         }
-                    
-                   
-
-               
-
-            }
-        
+         }
+   
     }
 
 }

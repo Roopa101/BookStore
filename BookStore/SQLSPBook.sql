@@ -122,7 +122,7 @@ CREATE PROCEDURE sp_DeleteWishlist
 	@WishlistId INT
 AS
 BEGIN
-		DELETE FROM Wishlist WHERE WishlistId = @WishlistId
+		DELETE FROM WishList WHERE WishlistId = @WishlistId
 END
 
 alter PROCEDURE sp_GetWishListbyUserId
@@ -147,3 +147,83 @@ BEGIN
 		inner join WishList
 		on Wishlist.BookId=Book.BookId where WishList.UserId=@UserId
 End
+
+
+----address----
+create procedure Sp_AddAddress(
+		@UserId int,
+        @Address varchar(600),
+		@City varchar(50),
+		@State varchar(50),
+		@TypeId int	)		
+As 
+Begin
+	IF (EXISTS(SELECT * FROM UserRegister WHERE @UserId = @UserId))
+	Begin
+	Insert into Address (UserId,Address,City,State,TypeId )
+		values (@UserId,@Address,@City,@State,@TypeId);
+	End
+	Else
+	Begin
+		Select 1
+	End
+End
+
+create PROCEDURE sp_UpdateAddress
+(
+@AddressId int,
+@Address varchar(max),
+@City varchar(100),
+@State varchar(100),
+@TypeId int	)
+
+AS
+BEGIN
+       If (exists(Select * from Address where AddressId=@AddressId))
+		begin
+			UPDATE Address
+			SET 
+			Address= @Address, 
+			City = @City,
+			State=@State,
+			TypeId=@TypeId 
+				WHERE AddressId=@AddressID;
+		 end
+		 else
+		 begin
+		 select 1;
+		 end
+END
+
+alter procedure sp_DeleteAddress
+@AddressId int
+As
+Begin
+Delete Address where AddressId=@AddressId
+End
+
+
+create PROCEDURE sp_GetAllAddresses
+AS
+BEGIN
+	 begin
+	   SELECT * FROM Address ;
+   	 end
+End
+
+Exec sp_GetAllAddresses
+
+
+
+create PROCEDURE sp_GetAddressbyUserid
+  (
+  @UserId int
+  )
+AS
+BEGIN
+	   SELECT * FROM Address WHERE UserId=@UserId;
+	-- begin
+	--	select 1
+	--end
+END
+
